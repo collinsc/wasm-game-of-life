@@ -23,6 +23,7 @@ jobs:
         run: |
           cargo install wasm-pack
           wasm-pack build --release
+          wasm-pack test --headless --firefox
 
       - name: Set up Node.js version
         uses: actions/setup-node@v1
