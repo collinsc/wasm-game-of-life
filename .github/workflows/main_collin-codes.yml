@@ -23,7 +23,7 @@ jobs:
         run: wasm-pack build --release --target=web
 
       - name: wasm-pack test firefox
-        run: wasm-pack test --headless --firefox
+        run: wasm-pack test --headless --firefox --release
         
       - name: wasm-pack publish
         run: wasm-pack publish

@@ -12,9 +12,9 @@ fn pass() {
     assert_eq!(1 + 1, 2);
 }
 
-extern crate wasm_game_of_life;
-use wasm_game_of_life::Universe;
-use wasm_game_of_life::CreationStrategy;
+extern crate collinsc_wasm_game_of_life;
+use collinsc_wasm_game_of_life::Universe;
+use collinsc_wasm_game_of_life::CreationStrategy;
 
 
 #[cfg(test)]
