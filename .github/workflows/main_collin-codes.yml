@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+      
       - name: install wasm-pack
         run: cargo install wasm-pack
 
@@ -27,3 +27,9 @@ jobs:
 
       - name: wasm-pack test firefox
         run: wasm-pack test --headless --firefox
+        
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v2
+        with:
+          name: wasm-pkg
+          path: pkg
