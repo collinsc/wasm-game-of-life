@@ -7,7 +7,7 @@ const DEAD_COLOR = "#FFFFFF"
 const ALIVE_COLOR = "#00A7E1"
 
 
-const universe = Universe.new(CreationStrategy.Random)
+const universe = Universe.new(CreationStrategy.Deterministic)
 const width = universe.width()
 const height = universe.height()
 
@@ -39,34 +39,21 @@ const drawGrid = () => {
 
   // Horizontal lines.
   for (let j = 0; j <= height; j++) {
-    ctx.moveTo(0,                           j * (CELL_SIZE + 1) + 1)
-    ctx.lineTo((CELL_SIZE + 1) * width + 1, j * (CELL_SIZE + 1) + 1)
+    ctx.moveTo(0,                           j * (CELL_SIZE + 1) + 1);
+    ctx.lineTo((CELL_SIZE + 1) * width + 1, j * (CELL_SIZE + 1) + 1);
   }
 
   ctx.stroke();
 }
 
-const getIndex = (row, column) => {
-  return row * width + column
-};
-
-const bitIsSet = (n, arr) => {
-  const byte = Math.floor(n / 8);
-  const mask = 1 << (n % 8);
-  return (arr[byte] & mask) === mask;
-};
-
 const drawCells = () => {
-  const cellsPtr = universe.cells();
-  const cells = new Uint8Array(memory.buffer, cellsPtr, width * height / 8)
-
+  
   ctx.beginPath();
 
   for (let row = 0; row < height; row++) {
     for (let col = 0; col < width; col++) {
-      const idx = getIndex(row, col)
-
-      ctx.fillStyle = bitIsSet(idx, cells) === false
+      
+      ctx.fillStyle = universe.is_alive(row, col) === false
         ? DEAD_COLOR
         : ALIVE_COLOR
 

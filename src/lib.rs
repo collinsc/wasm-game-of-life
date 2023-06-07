@@ -78,9 +78,10 @@ impl Universe {
         self.height
     }
 
-    pub fn cells(&self) -> *const u32 {
-        self.cells.as_slice().as_ptr()
-    }
+    pub fn is_alive(&self, row: u32, col: u32) -> bool{
+        let idx = self.get_index(row, col);
+        return self.cells[idx];
+    }    
 
     /// Set the width of the universe.
     ///
