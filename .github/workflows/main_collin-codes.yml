@@ -1,9 +1,12 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and publish repo
+name: build repo
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 env:
@@ -16,8 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: install wasm-pack
-        run: cargo install wasm-pack
+      - uses: jetli/wasm-pack-action@v0.4.0
 
       - name: wasm-pack build
         run: wasm-pack build --release --target=web
@@ -25,5 +27,3 @@ jobs:
       - name: wasm-pack test firefox
         run: wasm-pack test --headless --firefox --release
         
-      - name: wasm-pack publish
-        run: wasm-pack publish
