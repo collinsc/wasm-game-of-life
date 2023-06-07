@@ -1,8 +1,10 @@
 [package]
-name = "wasm-game-of-life"
-version = "0.1.3"
+name = "collinsc-wasm-game-of-life"
+version = "0.1.4"
 authors = ["collinsc <collinsconway@gmail.com>"]
 edition = "2018"
+description = "Wasm game of life w/ efficient memory representation."
+repository = "https://github.com/collinsc/wasm-game-of-life"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
