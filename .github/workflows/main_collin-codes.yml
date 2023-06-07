@@ -9,12 +9,23 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: build rust
+        run:
+          cargo build --release
+
+      - name: wasm-pack
+        run:
+          wasm-pack build --release
 
       - name: Set up Node.js version
         uses: actions/setup-node@v1
@@ -23,6 +34,7 @@ jobs:
 
       - name: npm install, build, and test
         run: |
+          cd www
           npm install
           npm run build --if-present
           npm run test --if-present
