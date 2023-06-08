@@ -22,20 +22,16 @@ pub struct Universe {
 /// Public methods, exported to JavaScript.
 #[wasm_bindgen]
 impl Universe {
-    pub fn new(strategy: CreationStrategy) -> Universe {
-        let width: u32 = 64;
-        let height: u32 = 64;
+    pub fn new(width: u32, height: u32) -> Universe {
 
         let size = (width * height) as usize;
         let cells = FixedBitSet::with_capacity(size);
             
-        let mut universe = Universe {
+        Universe {
             width,
             height,
             cells,
-        };
-        universe.init(strategy);
-        universe
+        }
     }
 
     pub fn tick(&mut self) {
@@ -78,6 +74,10 @@ impl Universe {
         self.height
     }
 
+    pub fn cell_ptr(&self) -> *const u32{
+        return self.cells.as_slice().as_ptr();
+    }    
+
     pub fn is_alive(&self, row: u32, col: u32) -> bool{
         let idx = self.get_index(row, col);
         return self.cells[idx];
@@ -98,30 +98,8 @@ impl Universe {
         self.height = height;
         self.clear();
     }
-}
 
-impl Universe {
-    /// Get the dead and alive values of the entire universe.
-    pub fn get_cells(&self) -> &FixedBitSet {
-        &self.cells
-    }
-
-    /// Set cells to be alive in a universe by passing the row and column
-    /// of each cell as an array.
-    pub fn set_cells(&mut self, cells: &[(u32, u32)]) {
-        for (row, col) in cells.iter().cloned() {
-            let idx = self.get_index(row, col);
-            self.cells.set(idx, true);
-        }
-    }
-
-
-    fn clear (&mut self) {
-        let size = (self.width * self.height) as usize;
-        self.cells = FixedBitSet::with_capacity(size);
-    }
-
-    fn init(&mut self, strategy: CreationStrategy) {
+    pub fn init(&mut self, strategy: CreationStrategy) {
         for i in 0..self.width * self.height {
             let state = match strategy {
                 CreationStrategy::Deterministic => {
@@ -151,6 +129,30 @@ impl Universe {
             self.cells.set(i as usize, state);
         }
     }
+}
+
+impl Universe {
+    /// Get the dead and alive values of the entire universe.
+    pub fn get_cells(&self) -> &FixedBitSet {
+        &self.cells
+    }
+
+    /// Set cells to be alive in a universe by passing the row and column
+    /// of each cell as an array.
+    pub fn set_cells(&mut self, cells: &[(u32, u32)]) {
+        for (row, col) in cells.iter().cloned() {
+            let idx = self.get_index(row, col);
+            self.cells.set(idx, true);
+        }
+    }
+
+
+    fn clear (&mut self) {
+        let size = (self.width * self.height) as usize;
+        self.cells = FixedBitSet::with_capacity(size);
+    }
+
+
 
     fn get_index(&self, row: u32, column: u32) -> usize {
         (row * self.width + column) as usize
