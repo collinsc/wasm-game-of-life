@@ -61,3 +61,17 @@ pub fn test_empty_tick() {
     assert_eq!(&input_universe.get_cells(), &expected_universe.get_cells());
 }
 
+#[wasm_bindgen_test]
+pub fn test_toggle() {
+    
+    // Let's create an empty Universe  to test!
+    let mut input_universe = Universe::new(6, 6);
+
+    // This is what our spaceship should look like
+    // after one tick in our universe.
+    let mut expected_universe = Universe::new(6, 6);
+    expected_universe.set_cells(&[(0,0)]);
+
+    input_universe.toggle_cell(0,0);
+    assert_eq!(&input_universe.get_cells(), &expected_universe.get_cells());
+}

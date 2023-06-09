@@ -14,6 +14,7 @@ pub struct Universe {
     width: u32,
     height: u32,
     cells: Vec<u8>,
+    _buff: Vec<u8>,
 }
 
 /// Public methods, exported to JavaScript.
@@ -21,24 +22,24 @@ pub struct Universe {
 impl Universe {
     pub fn new(width: u32, height: u32) -> Universe {
         let cells = Vec::new();
+        let _buff = Vec::new();
         let mut uni = Universe {
             width,
             height,
             cells,
+            _buff
         };
         uni.clear();
         uni
     }
 
     pub fn tick(&mut self) {
-        let mut next = self.cells.clone();
 
         for row in 0..self.height {
             for col in 0..self.width {
                 let idx = self.get_index(row, col);
                 let cell = get_cell(&self.cells, idx);
                 let live_neighbors = self.live_neighbor_count(row, col);
-
                 let next_cell = match (cell, live_neighbors) {
                     // Rule 1: Any live cell with fewer than two live neighbours
                     // dies, as if caused by underpopulation.
@@ -55,14 +56,19 @@ impl Universe {
                     // All other cells remain in the same state.
                     (otherwise, _) => otherwise,
                 };
-                set_cell(&mut next, idx, next_cell);
+                set_cell(&mut self._buff, idx, next_cell);
             }
         }
 
-        for idx in 0..next.len() {
-            self.cells[idx] = next[idx];    
+        for idx in 0..self._buff.len() {
+            self.cells[idx] = self._buff[idx];    
         }
     }
+
+    pub fn get_index(&self, row: u32, column: u32) -> usize {
+        (row * self.width + column) as usize
+    }
+
 
     pub fn width(&self) -> u32 {
         self.width
@@ -122,6 +128,12 @@ impl Universe {
             set_cell(&mut self.cells, i as usize, state);
         }
     }
+
+    pub fn toggle_cell(&mut self, row: u32, col: u32) {
+        let idx = self.get_index(row, col);
+        let is_alive = get_cell(&self.cells, idx);
+        set_cell(&mut self.cells, idx, !is_alive);
+    }
 }
 
 fn get_cell(arr: &Vec<u8>, idx: usize) -> bool {
@@ -155,20 +167,16 @@ impl Universe {
     fn clear (&mut self) {
         let size = ((self.width * self.height) as f32 / 8.0).ceil() as usize ;
         self.cells = (0..size).map(|_| 0).collect();
-    }
-
-    fn get_index(&self, row: u32, column: u32) -> usize {
-        (row * self.width + column) as usize
+        self._buff = (0..size).map(|_| 0).collect();
     }
 
     fn live_neighbor_count(&self, row: u32, column: u32) -> u8 {
         let mut count = 0;
-        for delta_row in [self.height - 1, 0, 1].iter().cloned() {
-            for delta_col in [self.width - 1, 0, 1].iter().cloned() {
+        for delta_row in [self.height - 1, 0, 1] {
+            for delta_col in [self.width - 1, 0, 1] {
                 if delta_row == 0 && delta_col == 0 {
                     continue;
                 }
-
                 let neighbor_row = (row + delta_row) % self.height;
                 let neighbor_col = (column + delta_col) % self.width;
                 let idx = self.get_index(neighbor_row, neighbor_col);
