@@ -1,8 +1,5 @@
 use wasm_bindgen::prelude::*;
 use js_sys::Math::random;
-extern crate fixedbitset;
-use fixedbitset::FixedBitSet;
-
 
 #[wasm_bindgen]
 pub enum CreationStrategy {
@@ -16,22 +13,21 @@ pub enum CreationStrategy {
 pub struct Universe {
     width: u32,
     height: u32,
-    cells: FixedBitSet,
+    cells: Vec<u8>,
 }
 
 /// Public methods, exported to JavaScript.
 #[wasm_bindgen]
 impl Universe {
     pub fn new(width: u32, height: u32) -> Universe {
-
-        let size = (width * height) as usize;
-        let cells = FixedBitSet::with_capacity(size);
-            
-        Universe {
+        let cells = Vec::new();
+        let mut uni = Universe {
             width,
             height,
             cells,
-        }
+        };
+        uni.clear();
+        uni
     }
 
     pub fn tick(&mut self) {
@@ -40,7 +36,7 @@ impl Universe {
         for row in 0..self.height {
             for col in 0..self.width {
                 let idx = self.get_index(row, col);
-                let cell = self.cells[idx];
+                let cell = get_cell(&self.cells, idx);
                 let live_neighbors = self.live_neighbor_count(row, col);
 
                 let next_cell = match (cell, live_neighbors) {
@@ -59,11 +55,13 @@ impl Universe {
                     // All other cells remain in the same state.
                     (otherwise, _) => otherwise,
                 };
-                next.set(idx, next_cell);
+                set_cell(&mut next, idx, next_cell);
             }
         }
 
-        self.cells = next;
+        for idx in 0..next.len() {
+            self.cells[idx] = next[idx];    
+        }
     }
 
     pub fn width(&self) -> u32 {
@@ -74,14 +72,9 @@ impl Universe {
         self.height
     }
 
-    pub fn cell_ptr(&self) -> *const u32{
-        return self.cells.as_slice().as_ptr();
-    }    
-
-    pub fn is_alive(&self, row: u32, col: u32) -> bool{
-        let idx = self.get_index(row, col);
-        return self.cells[idx];
-    }    
+    pub fn cell_ptr(&self) -> *const u8{
+        return self.cells.as_ptr();
+    }        
 
     /// Set the width of the universe.
     ///
@@ -126,14 +119,27 @@ impl Universe {
                 },
                 _ => false
             };
-            self.cells.set(i as usize, state);
+            set_cell(&mut self.cells, i as usize, state);
         }
     }
 }
 
+fn get_cell(arr: &Vec<u8>, idx: usize) -> bool {
+    arr[idx / 8] & (1 << (idx % 8)) != 0
+}
+
+fn set_cell(arr: &mut Vec<u8>, idx: usize, is_alive: bool) {
+    if is_alive {
+        arr[idx / 8] |= 1 << (idx % 8)
+    } else {
+        arr[idx / 8] &= !(1 << (idx % 8))
+    }
+}
+
+
 impl Universe {
     /// Get the dead and alive values of the entire universe.
-    pub fn get_cells(&self) -> &FixedBitSet {
+    pub fn get_cells(&self) -> &Vec<u8> {
         &self.cells
     }
 
@@ -142,22 +148,18 @@ impl Universe {
     pub fn set_cells(&mut self, cells: &[(u32, u32)]) {
         for (row, col) in cells.iter().cloned() {
             let idx = self.get_index(row, col);
-            self.cells.set(idx, true);
+            set_cell(&mut self.cells, idx, true);
         }
     }
 
-
     fn clear (&mut self) {
-        let size = (self.width * self.height) as usize;
-        self.cells = FixedBitSet::with_capacity(size);
+        let size = ((self.width * self.height) as f32 / 8.0).ceil() as usize ;
+        self.cells = (0..size).map(|_| 0).collect();
     }
-
-
 
     fn get_index(&self, row: u32, column: u32) -> usize {
         (row * self.width + column) as usize
     }
-
 
     fn live_neighbor_count(&self, row: u32, column: u32) -> u8 {
         let mut count = 0;
@@ -170,7 +172,10 @@ impl Universe {
                 let neighbor_row = (row + delta_row) % self.height;
                 let neighbor_col = (column + delta_col) % self.width;
                 let idx = self.get_index(neighbor_row, neighbor_col);
-                count += self.cells[idx] as u8;
+                let is_alive = get_cell(&self.cells, idx);
+                if is_alive {
+                    count += 1;
+                }
             }
         }
         count

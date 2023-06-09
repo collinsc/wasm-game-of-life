@@ -1,10 +1,11 @@
 [package]
 name = "collinsc-wasm-game-of-life"
-version = "0.2.0"
+version = "0.2.4"
 authors = ["collinsc <collinsconway@gmail.com>"]
 edition = "2018"
 description = "Wasm game of life w/ efficient memory representation."
 repository = "https://github.com/collinsc/wasm-game-of-life"
+license= "MIT"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -23,7 +24,6 @@ wasm-bindgen = "0.2.78"
 console_error_panic_hook = { version = "0.1.6", optional = true }
 
 js-sys = "0.3.63"
-fixedbitset = "0.4.2"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"
