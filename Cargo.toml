@@ -1,6 +1,6 @@
 [package]
 name = "collinsc-wasm-game-of-life"
-version = "0.2.6"
+version = "0.3.1"
 authors = ["collinsc <collinsconway@gmail.com>"]
 edition = "2018"
 description = "Wasm game of life w/ efficient memory representation."
