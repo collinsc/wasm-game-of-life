@@ -1,5 +1,7 @@
 use wasm_bindgen::prelude::*;
 use js_sys::Math::random;
+mod shapes;
+use crate::shapes::Shape;
 
 #[wasm_bindgen]
 pub enum CreationStrategy {
@@ -126,15 +128,14 @@ impl Universe {
     }
 
     pub fn draw_object(&mut self, to_draw:DrawObject, row: u32, col: u32) {
-        let shape: &[(i8,i8,bool)] = match to_draw {
-            DrawObject::Spaceship => &SPACESHIP,
-            DrawObject::Glider => &GLIDER,
-            DrawObject::Pulsar => &PULSAR,
+        let shape: &'static Shape = match to_draw {
+            DrawObject::Spaceship => &shapes::SPACESHIP,
+            DrawObject::Glider => &shapes::GLIDER,
+            DrawObject::Pulsar => &shapes::PULSAR,
         };
-
-        for (delta_r, delta_c, is_alive) in shape {
-            let idx = self.get_delta_index(row, col, *delta_r, *delta_c);
-            set_cell(&mut self.cells, idx, *is_alive);
+        for idx in 0..shape.width * shape.height {
+            let idx_alive_tup = self.translate_idx(&shape, row, col, idx);
+            set_cell(&mut self.cells, idx_alive_tup.0, idx_alive_tup.1);
         }
     }
 }
@@ -151,43 +152,6 @@ fn set_cell(arr: &mut Vec<u8>, idx: usize, is_alive: bool) {
     }
 }
 
-const SPACESHIP: [(i8,i8,bool); 13 * 10]= [
-                                          (-6,-4, false),(-6,-3, false),(-6,-2, false),(-6,-1, false),(-6, 0,  true),(-6, 1,  true),(-6, 2, false),(-6, 3, false),(-6, 4, false),(-6, 5, false),
-                                          (-5,-4, false),(-5,-3, false),(-5,-2, false),(-5,-1,  true),(-5, 0,  true),(-5, 1,  true),(-5, 2,  true),(-5, 3, false),(-5, 4, false),(-5, 5, false),
-                                          (-4,-4, false),(-4,-3, false),(-4,-2, false),(-4,-1, false),(-4, 0, false),(-4, 1, false),(-4, 2, false),(-4, 3, false),(-4, 4, false),(-4, 5, false),
-                                          (-3,-4, false),(-3,-3, false),(-3,-2,  true),(-3,-1,  true),(-3, 0,  true),(-3, 1,  true),(-3, 2,  true),(-3, 3,  true),(-3, 4, false),(-3, 5, false),
-                                          (-2,-4, false),(-2,-3, false),(-2,-2, false),(-2,-1,  true),(-2, 0,  true),(-2, 1,  true),(-2, 2,  true),(-2, 3, false),(-2, 4, false),(-2, 5, false),
-                                          (-1,-4, false),(-1,-3, false),(-1,-2, false),(-1,-1, false),(-1, 0, false),(-1, 1, false),(-1, 2, false),(-1, 3, false),(-1, 4, false),(-1, 5, false),
-                                          ( 0,-4, false),( 0,-3, false),( 0,-2,  true),( 0,-1,  true),( 0, 0, false),( 0, 1, false),( 0, 2,  true),( 0, 3,  true),( 0, 4, false),( 0, 5, false),
-                                          ( 1,-4,  true),( 1,-3,  true),( 1,-2, false),( 1,-1,  true),( 1, 0, false),( 1, 1, false),( 1, 2,  true),( 1, 3, false),( 1, 4,  true),( 1, 5,  true),
-                                          ( 2,-4, false),( 2,-3, false),( 2,-2, false),( 2,-1,  true),( 2, 0, false),( 2, 1, false),( 2, 2,  true),( 2, 3, false),( 2, 4, false),( 2, 5, false),
-                                          ( 3,-4, false),( 3,-3, false),( 3,-2, false),( 3,-1, false),( 3, 0, false),( 3, 1, false),( 3, 2, false),( 3, 3, false),( 3, 4, false),( 3, 5, false),
-                                          ( 4,-4, false),( 4,-3, false),( 4,-2, false),( 4,-1, false),( 4, 0, false),( 4, 1, false),( 4, 2, false),( 4, 3, false),( 4, 4, false),( 4, 5, false),
-                                          ( 5,-4, false),( 5,-3, false),( 5,-2, false),( 5,-1, false),( 5, 0,  true),( 5, 1,  true),( 5, 2, false),( 5, 3, false),( 5, 4, false),( 5, 5, false),
-                                          ( 6,-4, false),( 6,-3, false),( 6,-2, false),( 6,-1, false),( 6, 0,  true),( 6, 1,  true),( 6, 2, false),( 6, 3, false),( 6, 4, false),( 6, 5, false),
-                                          ];
-const PULSAR: [(i8,i8,bool); 13 * 13] = [
-                                          (-6,-6, false),(-6,-5, false),(-6,-4,  true),(-6,-3,  true),(-6,-2,  true),(-6,-1, false),(-6, 0, false),(-6, 1, false),(-6, 2,  true),(-6, 3,  true),(-6, 4,  true),(-6, 5, false),(-6, 6, false),
-                                          (-5,-6, false),(-5,-5, false),(-5,-4, false),(-5,-3, false),(-5,-2, false),(-5,-1, false),(-5, 0, false),(-5, 1, false),(-5, 2, false),(-5, 3, false),(-5, 4, false),(-5, 5, false),(-5, 6, false),
-                                          (-4,-6,  true),(-4,-5, false),(-4,-4, false),(-4,-3, false),(-4,-2, false),(-4,-1,  true),(-4, 0, false),(-4, 1,  true),(-4, 2, false),(-4, 3, false),(-4, 4, false),(-4, 5, false),(-4, 6,  true),
-                                          (-3,-6,  true),(-3,-5, false),(-3,-4, false),(-3,-3, false),(-3,-2, false),(-3,-1,  true),(-3, 0, false),(-3, 1,  true),(-3, 2, false),(-3, 3, false),(-3, 4, false),(-3, 5, false),(-3, 6,  true),
-                                          (-2,-6,  true),(-2,-5, false),(-2,-4, false),(-2,-3, false),(-2,-2, false),(-2,-1,  true),(-2, 0, false),(-2, 1,  true),(-2, 2, false),(-2, 3, false),(-2, 4, false),(-2, 5, false),(-2, 6,  true),
-                                          (-1,-6, false),(-1,-5, false),(-1,-4,  true),(-1,-3,  true),(-1,-2,  true),(-1,-1, false),(-1, 0, false),(-1, 1, false),(-1, 2,  true),(-1, 3,  true),(-1, 4,  true),(-1, 5, false),(-1, 6, false),
-                                          ( 0,-6, false),( 0,-5, false),( 0,-4, false),( 0,-3, false),( 0,-2, false),( 0,-1, false),( 0, 0, false),( 0, 1, false),( 0, 2, false),( 0, 3, false),( 0, 4, false),( 0, 5, false),( 0, 6, false),
-                                          ( 1,-6, false),( 1,-5, false),( 1,-4,  true),( 1,-3,  true),( 1,-2,  true),( 1,-1, false),( 1, 0, false),( 1, 1, false),( 1, 2,  true),( 1, 3,  true),( 1, 4,  true),( 1, 5, false),( 1, 6, false),
-                                          ( 2,-6,  true),( 2,-5, false),( 2,-4, false),( 2,-3, false),( 2,-2, false),( 2,-1,  true),( 2, 0, false),( 2, 1,  true),( 2, 2, false),( 2, 3, false),( 2, 4, false),( 2, 5, false),( 2, 6,  true),
-                                          ( 3,-6,  true),( 3,-5, false),( 3,-4, false),( 3,-3, false),( 3,-2, false),( 3,-1,  true),( 3, 0, false),( 3, 1,  true),( 3, 2, false),( 3, 3, false),( 3, 4, false),( 3, 5, false),( 3, 6,  true),
-                                          ( 4,-6,  true),( 4,-5, false),( 4,-4, false),( 4,-3, false),( 4,-2, false),( 4,-1,  true),( 4, 0, false),( 4, 1,  true),( 4, 2, false),( 4, 3, false),( 4, 4, false),( 4, 5, false),( 4, 6,  true),
-                                          ( 5,-6, false),( 5,-5, false),( 5,-4, false),( 5,-3, false),( 5,-2, false),( 5,-1, false),( 5, 0, false),( 5, 1, false),( 5, 2, false),( 5, 3, false),( 5, 4, false),( 5, 5, false),( 5, 6, false),
-                                          ( 6,-6, false),( 6,-5, false),( 6,-4,  true),( 6,-3,  true),( 6,-2,  true),( 6,-1, false),( 6, 0, false),( 6, 1, false),( 6, 2,  true),( 6, 3,  true),( 6, 4,  true),( 6, 5, false),( 6, 6, false),
-                                          ];
-const GLIDER : [(i8,i8,bool); 9] = [ 
-                                    (-1,-1, false),(-1, 0, false),(-1, 1,  true),
-                                    ( 0,-1,  true),( 0, 0, false),( 0, 1,  true),
-                                    ( 1,-1, false),( 1, 0,  true),( 1, 1,  true),
-                                    ];
-
-
 
 
 impl Universe {
@@ -195,20 +159,24 @@ impl Universe {
         (row * self.width + column) as usize
     }
 
-    pub fn get_delta_index(&self, row: u32, col: u32, delta_row: i8, delta_col: i8) -> usize {
-        let r_del: u32  = if delta_row < 0 { 
-            (delta_row + (self.height as i8)) as u32
+    fn translate_idx(&self, shape: &'static Shape, ctr_row:u32, ctr_col:u32, shape_idx: u32) ->(usize, bool) {
+        let row_shift = (shape_idx / shape.width) as i32 + shape.row_offset;
+        let col_shift = (shape_idx % shape.width) as i32 + shape.col_offset;
+        let row_offset = if row_shift < 0 {
+            self.height() as i32 + row_shift
+        } else { 
+            row_shift 
+        } as u32;
+        let col_offset = if col_shift < 0 {
+            self.width() as i32 + col_shift
         } else {
-            delta_row as u32
-        };
-        let _row = (row + r_del) % self.height;
-        let c_del:u32 = if delta_col < 0 {
-            (delta_col + (self.width as i8)) as u32
-        } else {
-            delta_col as u32
-        };
-        let _col = (col + c_del) % self.width;
-        self.get_index(_row, _col)
+            col_shift
+        } as u32;
+        let cell_row = (ctr_row + row_offset) % self.height();
+        let cell_col = (ctr_col + col_offset) % self.width();
+        let draw_idx = self.get_index(cell_row, cell_col);
+        let is_alive = shape.pattern[(shape_idx / 8) as usize] & (128 >> (shape_idx % 8)) != 0;
+        (draw_idx, is_alive)
     }
 
 
@@ -232,15 +200,12 @@ impl Universe {
         self._buff = (0..size).map(|_| 0).collect();
     }
 
-    fn live_neighbor_count(&self, row: u32, column: u32) -> u8 {
+    pub fn live_neighbor_count(&self, row: u32, column: u32) -> u8 {
+        let shape = &shapes::NEIGHBORS;
         let mut count = 0;
-        for (delta_row, delta_col, _) in GLIDER {
-            if delta_row == 0 && delta_col == 0 {
-                continue;
-            }
-            let idx = self.get_delta_index(row, column, delta_row, delta_col);
-            let is_alive = get_cell(&self.cells, idx);
-            if is_alive {
+        for idx in 0..shape.width * shape.height {
+            let idx_alive_tup = self.translate_idx(&shape, row, column, idx);
+            if idx_alive_tup.1 && get_cell(&self.cells, idx_alive_tup.0) {
                 count += 1;
             }
         }

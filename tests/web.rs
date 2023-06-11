@@ -13,13 +13,16 @@ fn pass() {
 }
 
 extern crate collinsc_wasm_game_of_life;
+
 use collinsc_wasm_game_of_life::Universe;
 
 
 #[cfg(test)]
 pub fn input_spaceship() -> Universe {
     let mut universe = Universe::new(6, 6);
-    universe.set_cells(&[(1,2), (2,3), (3,1), (3,2), (3,3)]);
+    universe.set_cells(&[(1,2), 
+                                (2,3), 
+                  (3,1), (3,2), (3,3)]);
     universe
 }
 
@@ -29,6 +32,42 @@ pub fn expected_spaceship() -> Universe {
     universe.set_cells(&[(2,1), (2,3), (3,2), (3,3), (4,2)]);
     universe
 }
+
+#[cfg(test)]
+pub fn create_ring() -> Universe {
+    let mut universe = Universe::new(3, 3);
+    universe.set_cells(&[
+        (0,0),(0,1),(0,2),
+        (1,0),      (1,2),
+        (2,0),(2,1),(2,2)
+    ]);
+    universe
+}
+
+
+
+#[wasm_bindgen_test]
+pub fn test_ring() {
+    let input_universe = create_ring();
+    assert_eq!(input_universe.live_neighbor_count(1,1), 8);
+    assert_eq!(input_universe.live_neighbor_count(1,0), 7);
+    assert_eq!(input_universe.live_neighbor_count(0,0), 7);
+    assert_eq!(input_universe.live_neighbor_count(2,2), 7);
+    assert_eq!(input_universe.live_neighbor_count(0,2), 7);
+    assert_eq!(input_universe.live_neighbor_count(1,2), 7);
+}
+
+#[wasm_bindgen_test]
+pub fn test_neighbors() {
+    // Let's create a smaller Universe with a small spaceship to test!
+    let input_universe = input_spaceship();
+    assert_eq!(input_universe.live_neighbor_count(0,0), 0);
+    assert_eq!(input_universe.live_neighbor_count(1,1), 1);
+    assert_eq!(input_universe.live_neighbor_count(3,2), 3);
+    assert_eq!(input_universe.live_neighbor_count(3,3), 2);
+    assert_eq!(input_universe.live_neighbor_count(2,2), 5);
+}
+
 
 #[wasm_bindgen_test]
 pub fn test_tick() {

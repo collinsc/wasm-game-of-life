@@ -1,6 +1,6 @@
 [package]
 name = "collinsc-wasm-game-of-life"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["collinsc <collinsconway@gmail.com>"]
 edition = "2018"
 description = "Wasm game of life w/ efficient memory representation."
@@ -29,6 +29,11 @@ wasm-opt = "0.112.0"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"
+
+[dev-dependencies.web-sys]
+version = "0.3"
+features = [ "console"
+]
 
 
 [profile.release]
